@@ -22,6 +22,8 @@ type Screen = "menu" | "playing" | "gameover";
 
 export default function Home() {
   const [screen, setScreen] = useState<Screen>("menu");
+  const screenRef = useRef<Screen>("menu");
+  screenRef.current = screen;
   const [gameKey, setGameKey] = useState(0);
   const [finalScore, setFinalScore] = useState(0);
   const [showBoard, setShowBoard] = useState(false);
@@ -87,12 +89,19 @@ export default function Home() {
     bgmRef.current = bgm;
     const tryPlay = () => bgm.play().catch(() => {});
     tryPlay();
-    const onFirstTouch = () => {
-      if (bgm.paused && bgmRef.current === bgm) tryPlay();
+    // autoplay 被擋時：每次互動都重試（遊戲進行中除外），直到播放成功
+    const onTouch = () => {
+      if (
+        bgmRef.current === bgm &&
+        bgm.paused &&
+        screenRef.current !== "playing"
+      ) {
+        tryPlay();
+      }
     };
-    window.addEventListener("pointerdown", onFirstTouch, { once: true });
+    window.addEventListener("pointerdown", onTouch);
     return () => {
-      window.removeEventListener("pointerdown", onFirstTouch);
+      window.removeEventListener("pointerdown", onTouch);
       bgm.pause();
       bgmRef.current = null;
     };
