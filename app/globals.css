@@ -1,26 +1,56 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+html,
+body {
+  height: 100%;
+  overscroll-behavior: none;
+  font-family: -apple-system, "PingFang TC", "Microsoft JhengHei", sans-serif;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+.neon-text {
+  text-shadow:
+    0 0 6px rgba(250, 204, 21, 0.9),
+    0 0 18px rgba(239, 68, 68, 0.8),
+    0 0 36px rgba(239, 68, 68, 0.6);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+.neon-box {
+  box-shadow:
+    0 0 8px rgba(250, 204, 21, 0.5),
+    0 0 20px rgba(239, 68, 68, 0.35),
+    inset 0 0 12px rgba(250, 204, 21, 0.15);
+}
+
+@keyframes marquee {
+  0% {
+    transform: translateX(100%);
+  }
+  100% {
+    transform: translateX(-100%);
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+.marquee {
+  display: inline-block;
+  white-space: nowrap;
+  animation: marquee 9s linear infinite;
+}
+
+@keyframes flicker {
+  0%, 92%, 100% {
+    opacity: 1;
+  }
+  94% {
+    opacity: 0.6;
+  }
+  96% {
+    opacity: 0.9;
+  }
+  98% {
+    opacity: 0.5;
+  }
+}
+
+.flicker {
+  animation: flicker 3.5s infinite;
 }
