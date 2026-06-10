@@ -18,7 +18,7 @@ export default function Leaderboard({ onClose }: { onClose: () => void }) {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
       <div className="neon-box w-full max-w-sm rotate-1 rounded-2xl border-4 border-yellow-400 bg-stone-900 p-6 text-amber-50">
         <h2 className="neon-text mb-4 text-center text-2xl font-black text-yellow-300">
-          🏆 全球最猛排行榜
+          🏆 不受鳥氣排行榜
         </h2>
         {!supabase ? (
           <p className="py-8 text-center text-stone-400">

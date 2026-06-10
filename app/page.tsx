@@ -227,7 +227,7 @@ export default function Home() {
               onClick={() => setShowBoard(true)}
               className="w-full rounded-2xl border-2 border-yellow-600 bg-stone-900 py-2.5 font-black text-yellow-400 active:scale-95"
             >
-              🏆 全球不受鳥氣排行榜
+              🏆 不受鳥氣排行榜
             </button>
           </div>
         </div>
