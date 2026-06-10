@@ -14,13 +14,23 @@ const SOUND_SOURCES: Record<SoundKey, string[]> = {
 export class AudioManager {
   muted = false;
   private ctx: AudioContext | null = null;
+  private gain: GainNode | null = null;
+  private volume = 1;
   private buffers = new Map<SoundKey, AudioBuffer[]>();
   private loading = false;
+
+  setVolume(v: number) {
+    this.volume = v;
+    if (this.gain) this.gain.gain.value = v;
+  }
 
   async init() {
     if (this.ctx || this.loading || typeof window === "undefined") return;
     this.loading = true;
     this.ctx = new AudioContext();
+    this.gain = this.ctx.createGain();
+    this.gain.gain.value = this.volume;
+    this.gain.connect(this.ctx.destination);
     await Promise.all(
       (Object.entries(SOUND_SOURCES) as [SoundKey, string[]][]).map(
         async ([key, urls]) => {
@@ -51,7 +61,7 @@ export class AudioManager {
     if (!this.ctx || !bufs || bufs.length === 0) return;
     const src = this.ctx.createBufferSource();
     src.buffer = bufs[Math.floor(Math.random() * bufs.length)];
-    src.connect(this.ctx.destination);
+    src.connect(this.gain ?? this.ctx.destination);
     src.start();
   }
 }

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import GameCanvas from "@/components/GameCanvas";
 import GameOverModal from "@/components/GameOverModal";
 import Leaderboard from "@/components/Leaderboard";
+import SettingsModal from "@/components/SettingsModal";
 import { TARGETS, SPECIALS } from "@/lib/game/targets";
 import { audioManager } from "@/lib/game/audio";
 import { MARQUEE_TEXT } from "@/lib/game/quotes";
@@ -24,17 +25,40 @@ export default function Home() {
   const [gameKey, setGameKey] = useState(0);
   const [finalScore, setFinalScore] = useState(0);
   const [showBoard, setShowBoard] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const [bgmMuted, setBgmMuted] = useState(false);
   const [sfxMuted, setSfxMuted] = useState(false);
+  const [bgmVol, setBgmVol] = useState(0.6);
+  const [sfxVol, setSfxVol] = useState(1);
+  const [isNewBest, setIsNewBest] = useState(false);
+  const [bestScore, setBestScore] = useState(0);
   const bgmRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     const bgm = localStorage.getItem("hotpot-muted-bgm") === "1";
     const sfx = localStorage.getItem("hotpot-muted-sfx") === "1";
+    const bv = Number(localStorage.getItem("hotpot-vol-bgm") ?? 0.6);
+    const sv = Number(localStorage.getItem("hotpot-vol-sfx") ?? 1);
     setBgmMuted(bgm);
     setSfxMuted(sfx);
+    setBgmVol(bv);
+    setSfxVol(sv);
+    setBestScore(Number(localStorage.getItem("hotpot-best") ?? 0));
     audioManager.muted = sfx;
+    audioManager.setVolume(sv);
   }, []);
+
+  const changeBgmVol = (v: number) => {
+    setBgmVol(v);
+    if (bgmRef.current) bgmRef.current.volume = v;
+    localStorage.setItem("hotpot-vol-bgm", String(v));
+  };
+
+  const changeSfxVol = (v: number) => {
+    setSfxVol(v);
+    audioManager.setVolume(v);
+    localStorage.setItem("hotpot-vol-sfx", String(v));
+  };
 
   const toggleBgm = () => {
     setBgmMuted((m) => {
@@ -58,7 +82,7 @@ export default function Home() {
   useEffect(() => {
     const bgm = new Audio("/sounds/background.mp3");
     bgm.loop = true;
-    bgm.volume = 0.6;
+    bgm.volume = Number(localStorage.getItem("hotpot-vol-bgm") ?? 0.6);
     bgm.muted = localStorage.getItem("hotpot-muted-bgm") === "1";
     bgmRef.current = bgm;
     const tryPlay = () => bgm.play().catch(() => {});
@@ -91,63 +115,45 @@ export default function Home() {
 
   const handleGameOver = useCallback((score: number) => {
     setFinalScore(score);
+    const best = Number(localStorage.getItem("hotpot-best") ?? 0);
+    const newBest = score > best;
+    if (newBest) localStorage.setItem("hotpot-best", String(score));
+    setIsNewBest(newBest);
+    setBestScore(Math.max(best, score));
     setScreen("gameover");
   }, []);
 
   return (
     <main className="relative mx-auto flex h-full w-full max-w-md flex-col">
       {screen === "menu" && (
-        <div className="flex flex-1 flex-col items-center justify-center gap-6 p-5">
+        <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-3.5 overflow-y-auto p-4">
           <div className="w-full overflow-hidden rounded border-2 border-red-600 bg-black py-1 text-sm font-bold text-yellow-300">
             <span className="marquee">{MARQUEE_TEXT}</span>
           </div>
 
           <div className="text-center">
-            <div className="relative mx-auto w-56">
+            <div className="relative mx-auto w-44">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/foods/main.png"
                 alt="鼎王全餐"
                 className="neon-box w-full rounded-2xl border-2 border-red-700"
               />
-              <div className="absolute -right-13 top-1/2 flex -translate-y-1/2 flex-col gap-2">
-                <button
-                  onClick={toggleBgm}
-                  aria-label={bgmMuted ? "開啟音樂" : "關閉音樂"}
-                  className={`flex h-11 w-11 flex-col items-center justify-center rounded-full border-2 bg-black/70 leading-none active:scale-90 ${
-                    bgmMuted
-                      ? "border-stone-600 opacity-50 grayscale"
-                      : "border-yellow-600"
-                  }`}
-                >
-                  <span className="text-base">{bgmMuted ? "🔇" : "🎵"}</span>
-                  <span className="text-[9px] font-bold text-amber-200">
-                    音樂
-                  </span>
-                </button>
-                <button
-                  onClick={toggleSfx}
-                  aria-label={sfxMuted ? "開啟音效" : "關閉音效"}
-                  className={`flex h-11 w-11 flex-col items-center justify-center rounded-full border-2 bg-black/70 leading-none active:scale-90 ${
-                    sfxMuted
-                      ? "border-stone-600 opacity-50 grayscale"
-                      : "border-yellow-600"
-                  }`}
-                >
-                  <span className="text-base">{sfxMuted ? "🔇" : "🔊"}</span>
-                  <span className="text-[9px] font-bold text-amber-200">
-                    音效
-                  </span>
-                </button>
-              </div>
+              <button
+                onClick={() => setShowSettings(true)}
+                aria-label="設定"
+                className="absolute -right-15 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border-2 border-yellow-600 bg-black/70 text-xl active:scale-90"
+              >
+                ⚙️
+              </button>
             </div>
-            <h1 className="neon-text flicker mt-3 -rotate-2 text-5xl font-black tracking-widest text-yellow-300">
+            <h1 className="neon-text flicker mt-2 -rotate-2 text-4xl font-black tracking-widest text-yellow-300">
               鼎王吃到飽
             </h1>
-            <p className="mt-1 rotate-1 text-lg font-black text-red-500">
+            <p className="mt-1 rotate-1 text-base font-black text-red-500">
               ～ 你說的對，但這就是 ～
             </p>
-            <p className="mt-2 text-sm text-amber-200/80">
+            <p className="mt-1 text-sm text-amber-200/80">
               40 秒內任你吃啊
             </p>
           </div>
@@ -203,18 +209,23 @@ export default function Home() {
             <p className="text-center text-xs text-amber-200/60">
               白飯無限盛啊🍚 鼎王的水都不用錢的🫪
             </p>
+            {bestScore > 0 && (
+              <p className="text-center text-sm font-black text-yellow-400">
+                👑 個人最高紀錄：{bestScore}
+              </p>
+            )}
           </div>
 
-          <div className="flex w-full flex-col gap-3">
+          <div className="flex w-full flex-col gap-2">
             <button
               onClick={startGame}
-              className="neon-box w-full -rotate-1 rounded-2xl border-4 border-yellow-400 bg-gradient-to-b from-red-500 to-red-700 py-4 text-2xl font-black tracking-widest text-yellow-300 active:scale-95"
+              className="neon-box w-full -rotate-1 rounded-2xl border-4 border-yellow-400 bg-gradient-to-b from-red-500 to-red-700 py-3 text-xl font-black tracking-widest text-yellow-300 active:scale-95"
             >
-              🔥 點個50塊油條開吃 🔥
+              🔥 點個50塊油條上鍋 🔥
             </button>
             <button
               onClick={() => setShowBoard(true)}
-              className="w-full rounded-2xl border-2 border-yellow-600 bg-stone-900 py-3 font-black text-yellow-400 active:scale-95"
+              className="w-full rounded-2xl border-2 border-yellow-600 bg-stone-900 py-2.5 font-black text-yellow-400 active:scale-95"
             >
               🏆 全球不受鳥氣排行榜
             </button>
@@ -223,12 +234,18 @@ export default function Home() {
       )}
 
       {(screen === "playing" || screen === "gameover") && (
-        <GameCanvas key={gameKey} onGameOver={handleGameOver} />
+        <GameCanvas
+          key={gameKey}
+          onGameOver={handleGameOver}
+          onExit={() => setScreen("menu")}
+        />
       )}
 
       {screen === "gameover" && (
         <GameOverModal
           score={finalScore}
+          bestScore={bestScore}
+          isNewBest={isNewBest}
           onRestart={startGame}
           onHome={() => setScreen("menu")}
           onShowLeaderboard={() => setShowBoard(true)}
@@ -236,6 +253,20 @@ export default function Home() {
       )}
 
       {showBoard && <Leaderboard onClose={() => setShowBoard(false)} />}
+
+      {showSettings && (
+        <SettingsModal
+          bgmMuted={bgmMuted}
+          sfxMuted={sfxMuted}
+          bgmVol={bgmVol}
+          sfxVol={sfxVol}
+          onToggleBgm={toggleBgm}
+          onToggleSfx={toggleSfx}
+          onBgmVol={changeBgmVol}
+          onSfxVol={changeSfxVol}
+          onClose={() => setShowSettings(false)}
+        />
+      )}
     </main>
   );
 }

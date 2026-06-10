@@ -29,8 +29,10 @@ function itemKey(item: Item): string {
 
 export default function GameCanvas({
   onGameOver,
+  onExit,
 }: {
   onGameOver: (score: number) => void;
+  onExit: () => void;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const engineRef = useRef<GameEngine>(new GameEngine());
@@ -41,6 +43,8 @@ export default function GameCanvas({
   const stunQuoteRef = useRef(STUN_QUOTES[0]);
   const streakRef = useRef<{ text: string; bornAt: number } | null>(null);
   const countdownRef = useRef(3000);
+  const pausedRef = useRef(false);
+  const [paused, setPaused] = useState(false);
   const [hud, setHud] = useState({
     score: 0,
     timeLeft: 40,
@@ -223,7 +227,14 @@ export default function GameCanvas({
       const dt = Math.min(100, now - last);
       last = now;
 
-      // 開場倒數：隊伍靜止，數完才開始
+      // 暫停中：畫面凍結，時間不前進
+      if (pausedRef.current) {
+        draw(dt);
+        raf = requestAnimationFrame(loop);
+        return;
+      }
+
+      // 開場/繼續倒數：隊伍靜止，數完才開始
       if (countdownRef.current > 0) {
         countdownRef.current -= dt;
         draw(dt);
@@ -275,8 +286,20 @@ export default function GameCanvas({
     };
   }, [onGameOver]);
 
+  const pauseGame = () => {
+    if (countdownRef.current > 0 || engineRef.current.over) return;
+    pausedRef.current = true;
+    setPaused(true);
+  };
+
+  const resumeGame = () => {
+    pausedRef.current = false;
+    countdownRef.current = 3000;
+    setPaused(false);
+  };
+
   const shoot = (lane: number) => {
-    if (countdownRef.current > 0) return;
+    if (countdownRef.current > 0 || pausedRef.current) return;
     const engine = engineRef.current;
     const result = engine.shoot(lane);
     if (!result) return;
@@ -304,6 +327,14 @@ export default function GameCanvas({
     <div className="flex h-full w-full flex-col">
       <div className="flex items-center justify-between border-b-2 border-red-800 bg-black px-4 py-2 text-lg font-black">
         <span className="text-yellow-400">💰 {hud.score}</span>
+        <button
+          onClick={pauseGame}
+          aria-label="暫停"
+          disabled={hud.counting}
+          className="rounded-full border-2 border-yellow-600 px-3 py-0.5 text-sm text-yellow-400 active:scale-90 disabled:opacity-40"
+        >
+          ⏸
+        </button>
         <span
           className={
             hud.timeLeft <= 10 ? "neon-text text-red-500" : "text-amber-100"
@@ -315,6 +346,32 @@ export default function GameCanvas({
       <div className="relative flex-1 touch-none select-none">
         <canvas ref={canvasRef} className="absolute inset-0" />
       </div>
+      {paused && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
+          <div className="neon-box w-full max-w-sm rounded-2xl border-4 border-yellow-400 bg-stone-900 p-6 text-center text-amber-50">
+            <h2 className="text-2xl font-black text-yellow-300">⏸ 喝個冰水，休息一下</h2>
+            <p className="mt-3 text-sm font-bold text-amber-200/70">目前分數</p>
+            <p className="neon-text mb-5 mt-1 text-5xl font-black text-yellow-300">
+              {hud.score}
+            </p>
+            <div className="flex flex-col gap-2">
+              <button
+                onClick={resumeGame}
+                className="w-full rounded-xl border-2 border-yellow-400 bg-gradient-to-b from-red-500 to-red-700 py-3 text-lg font-black text-yellow-300 active:scale-95"
+              >
+                🔥 繼續開吃
+              </button>
+              <button
+                onClick={onExit}
+                className="w-full rounded-xl border border-stone-600 bg-stone-800 py-3 font-bold text-stone-300 active:scale-95"
+              >
+                回主選單
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-4 gap-1 bg-black p-1 pb-3">
         {[0, 1, 2, 3].map((lane) => (
           <button

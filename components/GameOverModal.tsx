@@ -6,11 +6,15 @@ import { gameOverQuote } from "@/lib/game/quotes";
 
 export default function GameOverModal({
   score,
+  bestScore,
+  isNewBest,
   onRestart,
   onHome,
   onShowLeaderboard,
 }: {
   score: number;
+  bestScore: number;
+  isNewBest: boolean;
   onRestart: () => void;
   onHome: () => void;
   onShowLeaderboard: () => void;
@@ -24,6 +28,19 @@ export default function GameOverModal({
   const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">(
     "idle"
   );
+  const [copied, setCopied] = useState(false);
+
+  const share = async () => {
+    const text = `我在《鼎王吃到飽》40 秒內爽吃了 ${score} 分🔥 進來看就你最猛？來嗆我啊`;
+    const url = window.location.href;
+    if (navigator.share) {
+      await navigator.share({ text, url }).catch(() => {});
+    } else {
+      await navigator.clipboard.writeText(`${text} ${url}`);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
 
   const submit = async () => {
     const name = nickname.trim();
@@ -42,10 +59,18 @@ export default function GameOverModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
       <div className="neon-box w-full max-w-sm -rotate-1 rounded-2xl border-4 border-yellow-400 bg-stone-900 p-6 text-center text-amber-50">
         <h2 className="text-2xl font-black text-yellow-300">收攤了不好意思！貴賓</h2>
+        {isNewBest && (
+          <p className="neon-text mt-2 animate-bounce text-xl font-black text-red-400">
+            👑 太神啦！！
+          </p>
+        )}
         <p className="neon-text my-4 text-6xl font-black text-yellow-300">
           {score}
         </p>
-        <p className="mb-4 -rotate-1 text-lg font-black text-red-400">
+        <p className="text-sm font-bold text-amber-200/70">
+          個人最高：{bestScore}
+        </p>
+        <p className="mb-4 mt-2 -rotate-1 text-lg font-black text-red-400">
           「{gameOverQuote(score)}」
         </p>
 
@@ -83,6 +108,12 @@ export default function GameOverModal({
             className="w-full rounded-xl border-2 border-yellow-400 bg-gradient-to-b from-red-500 to-red-700 py-3 text-lg font-black text-yellow-300 active:scale-95"
           >
             🔥 再來一把
+          </button>
+          <button
+            onClick={share}
+            className="w-full rounded-xl border-2 border-yellow-600 bg-stone-800 py-3 font-black text-yellow-400 active:scale-95"
+          >
+            {copied ? "✅ 已複製" : "📣 分享戰績"}
           </button>
           {supabase && (
             <button

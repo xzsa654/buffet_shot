@@ -1,7 +1,7 @@
 create table leaderboard (
   id uuid primary key default gen_random_uuid(),
   nickname text not null check (char_length(nickname) between 1 and 12),
-  score int not null check (score >= 0 and score <= 100000),
+  score int not null check (score >= 0 and score <= 15000),
   created_at timestamptz default now()
 );
 
