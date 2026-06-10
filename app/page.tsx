@@ -145,7 +145,7 @@ export default function Home() {
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/foods/main.png"
-                alt="鼎王全餐"
+                alt="薡王全餐"
                 className="neon-box w-full rounded-2xl border-2 border-red-700"
               />
               <button
@@ -157,7 +157,7 @@ export default function Home() {
               </button>
             </div>
             <h1 className="neon-text flicker mt-2 -rotate-2 text-4xl font-black tracking-widest text-yellow-300">
-              鼎王吃到飽
+              薡王吃到飽
             </h1>
             <p className="mt-1 rotate-1 text-base font-black text-red-500">
               ～ 你說的對，但這就是 ～
@@ -216,7 +216,7 @@ export default function Home() {
               ))}
             </div>
             <p className="text-center text-xs text-amber-200/60">
-              白飯無限盛啊🍚 鼎王的水都不用錢的🫪
+              白飯無限盛啊🍚 薡王的水都不用錢的🫪
             </p>
             {bestScore > 0 && (
               <p className="text-center text-sm font-black text-yellow-400">
@@ -239,6 +239,11 @@ export default function Home() {
               🏆 不受鳥氣排行榜
             </button>
           </div>
+
+          <p className="px-4 text-center text-[10px] leading-relaxed text-stone-500">
+            本遊戲為粉絲二創作品，無任何商業用途，
+            與任何餐飲品牌、實況主均無關聯。
+          </p>
         </div>
       )}
 

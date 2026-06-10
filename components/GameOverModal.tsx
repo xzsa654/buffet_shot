@@ -31,7 +31,7 @@ export default function GameOverModal({
   const [copied, setCopied] = useState(false);
 
   const share = async () => {
-    const text = `我在《鼎王吃到飽》40 秒內爽吃了 ${score} 分🔥 進來看就你最猛？來嗆我啊`;
+    const text = `我在《薡王吃到飽》40 秒內爽吃了 ${score} 分🔥 進來看就你最猛？來嗆我啊`;
     const url = window.location.href;
     if (navigator.share) {
       await navigator.share({ text, url }).catch(() => {});
