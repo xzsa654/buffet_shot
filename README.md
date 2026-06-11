@@ -4,7 +4,7 @@
 
 仿 ShotZombie 玩法的網頁手遊：四排食材佇列衝向你，瘋狂射擊最前面的那一個，手速越快分越高。統神火鍋店主題，附全球排行榜。
 
-**線上玩：https://dingwang650.vercel.app**（建議手機開啟）
+**線上玩：[https://dingwang650.vercel.app**](https://dingwang650.vercel.app/)（建議手機開啟）
 
 ## 玩法
 
